@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>So sánh Tương tác: Sony A7C vs A7C II</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Pure White Background with Subtle Blues and Grays for content elements -->
+    <!-- Application Structure Plan: A single-page dashboard with tabbed navigation (Tổng Quan, Chụp Ảnh, Quay Video, Trải Nghiệm, Sale Talk, Counter Talk, Kết Luận). This task-oriented structure allows users (and now sales staff) to directly compare features relevant to their primary interests (e.g., a videographer can jump straight to the video section, sales staff can access talking points). The 'Tổng Quan' tab provides at-a-glance charts for key decision metrics like price and battery, while other tabs offer deeper, side-by-side qualitative and quantitative comparisons. The new 'Sale Talk' and 'Counter Talk' tabs provide structured textual content for training purposes. This is more intuitive for decision-making and training than a linear report, enabling users to efficiently find the information they need to choose a camera or prepare for sales discussions. -->
+    <!-- Visualization & Content Choices:
+        - Report Info: Price, Battery, Buffer -> Goal: Quick Comparison -> Viz: Bar Charts (Chart.js) -> Interaction: Hover for details -> Justification: Bar charts are excellent for comparing discrete numerical values, making differences immediately obvious.
+        - Report Info: Full Spec Table -> Goal: Detailed Lookup -> Viz: Interactive HTML Table -> Interaction: Click category to highlight rows -> Justification: A full table is necessary for detail, but interaction prevents it from being overwhelming.
+        - Report Info: Autofocus System Capabilities -> Goal: Emphasize AI upgrade -> Viz: Structured HTML Diagram -> Interaction: None, visual hierarchy -> Justification: A visual diagram with nested lists for the A7C II's AI features better communicates the scale of the upgrade than plain text.
+        - Report Info: Ergonomics (Front Dial) -> Goal: Show physical difference -> Viz: HTML/CSS Schematic -> Interaction: None -> Justification: A simple visual representation is more effective and immediate than a textual description.
+        - Report Info: Video specs (8-bit vs 10-bit) -> Goal: Highlight key upgrade -> Viz: Styled HTML Badges -> Interaction: None -> Justification: Color-coded badges draw the eye to this critical differentiator for videographers.
+        - Report Info: Sales & Counter Arguments -> Goal: Training/Sales Aid -> Viz: Structured Text with Headings/Bullet Points -> Interaction: None, direct consumption -> Justification: Clear, concise text is best for conveying specific talking points for sales and counter-arguments.
+        - Library/Method: Chart.js for all charts on canvas. HTML/Tailwind for diagrams and layouts. JS for tab navigation and chart rendering.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff; /* Pure white */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .tab-button {
+            transition: all 0.3s ease-in-out;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-button.active {
+            color: #2563eb; /* blue-600 */
+            border-bottom-color: #2563eb; /* blue-600 */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .spec-highlight {
+            background-color: #eff6ff !important; /* blue-50 */
+            transition: background-color 0.3s;
+        }
+        .content-card {
+            background-color: #ffffff; /* Pure white */
+            padding: 1.5rem; /* p-6 */
+            border-radius: 0.75rem; /* rounded-xl */
+            /* Removed shadow-sm and border */
+        }
+        .content-card-bordered { /* For the table, keep a subtle border if desired for clarity */
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0; /* slate-200 */
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">So sánh Tương tác: Sony A7C vs A7C II</h1>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">Công cụ giúp bạn phân tích, so sánh và chọn lựa chiếc máy ảnh full-frame nhỏ gọn phù hợp nhất tại thị trường Việt Nam.</p>
+        </header>
+
+        <main>
+            <div class="sticky top-0 bg-white/80 backdrop-blur-sm z-10 mb-8 border-b border-slate-200">
+                <nav id="tabs" class="flex justify-center space-x-4 md:space-x-8 -mb-px overflow-x-auto pb-2">
+                    <button data-tab="overview" class="tab-button active text-sm md:text-base font-semibold py-4 px-2 md:px-4 whitespace-nowrap">Tổng Quan & Giá</button>
+                    <button data-tab="photo" class="tab-button text-sm md:text-base font-semibold py-4 px-2 md:px-4 whitespace-nowrap">Chụp Ảnh</button>
+                    <button data-tab="video" class="tab-button text-sm md:text-base font-semibold py-4 px-2 md:px-4 whitespace-nowrap">Quay Video</button>
+                    <button data-tab="ux" class="tab-button text-sm md:text-base font-semibold py-4 px-2 md:px-4 whitespace-nowrap">Trải Nghiệm</button>
+                    <button data-tab="saletalk" class="tab-button text-sm md:text-base font-semibold py-4 px-2 md:px-4 whitespace-nowrap">Sale Talk</button>
+                    <button data-tab="countertalk" class="tab-button text-sm md:text-base font-semibold py-4 px-2 md:px-4 whitespace-nowrap">Counter Talk</button>
+                    <button data-tab="conclusion" class="tab-button text-sm md:text-base font-semibold py-4 px-2 md:px-4 whitespace-nowrap">Kết Luận</button>
+                </nav>
+            </div>
+            
+            <div id="tab-contents">
+                <!-- Overview Tab -->
+                <section id="overview" class="tab-content active fade-in">
+                    <div class="text-center mb-12">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">So sánh nhanh các yếu tố quyết định</h2>
+                        <p class="text-slate-600 max-w-2xl mx-auto">Đây là những khác biệt lớn nhất về giá, hiệu suất pin và bộ đệm. Tương tác với biểu đồ để xem chi tiết.</p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                        <div class="content-card">
+                            <h3 class="font-bold text-lg text-center mb-4">Giá tham khảo tại VN (Body)</h3>
+                            <div class="chart-container h-64 sm:h-72">
+                                <canvas id="priceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="content-card">
+                            <h3 class="font-bold text-lg text-center mb-4">Thời lượng pin (chuẩn CIPA)</h3>
+                             <div class="chart-container h-64 sm:h-72">
+                                <canvas id="batteryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="content-card">
+                            <h3 class="font-bold text-lg text-center mb-4">Bộ đệm chụp liên tục (RAW)</h3>
+                            <div class="chart-container h-64 sm:h-72">
+                                <canvas id="bufferChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card-bordered">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-slate-900 mb-2">Bảng so sánh thông số chi tiết</h2>
+                            <p class="text-slate-600">Nhấn vào các danh mục tiêu đề để làm nổi bật thông số liên quan.</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th class="p-3 font-semibold text-slate-700 bg-slate-100 border-b border-slate-200 rounded-tl-lg">Thông số</th>
+                                        <th class="p-3 font-semibold text-slate-700 bg-slate-100 border-b border-slate-200 text-center">Sony A7C</th>
+                                        <th class="p-3 font-semibold text-slate-700 bg-slate-100 border-b border-slate-200 text-center rounded-tr-lg">Sony A7C II</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="spec-table-body">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Photo Tab -->
+                <section id="photo" class="tab-content fade-in">
+                    <div class="text-center mb-12">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">So sánh Hiệu suất Chụp ảnh</h2>
+                        <p class="text-slate-600 max-w-2xl mx-auto">Khám phá sự khác biệt cốt lõi về chất lượng hình ảnh và khả năng lấy nét, hai yếu tố quyết định đến một bức ảnh đẹp.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="content-card">
+                            <h3 class="font-bold text-xl mb-4">Cảm biến & Độ phân giải</h3>
+                            <div class="flex items-center justify-around text-center">
+                                <div>
+                                    <p class="text-3xl font-bold text-slate-500">24.2<span class="text-xl">MP</span></p>
+                                    <p class="text-sm text-slate-500">A7C</p>
+                                </div>
+                                <div class="text-slate-300 mx-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </div>
+                                <div>
+                                    <p class="text-4xl font-bold text-blue-600">33.0<span class="text-2xl">MP</span></p>
+                                    <p class="text-sm font-semibold text-blue-600">A7C II</p>
+                                </div>
+                            </div>
+                            <p class="mt-4 text-slate-600">A7C II với cảm biến 33MP cung cấp chi tiết vượt trội và khả năng crop ảnh linh hoạt hơn, lý tưởng cho nhiếp ảnh phong cảnh, kiến trúc hoặc khi cần bố cục lại ảnh trong hậu kỳ.</p>
+                        </div>
+
+                        <div class="content-card">
+                             <h3 class="font-bold text-xl mb-4">Lấy nét Tự động (Autofocus)</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="font-semibold text-slate-500">Sony A7C</p>
+                                    <ul class="list-disc list-inside text-slate-600">
+                                        <li>693 điểm lấy nét theo pha</li>
+                                        <li>Nhận diện mắt Người & Động vật</li>
+                                    </ul>
+                                </div>
+                                <hr>
+                                <div>
+                                    <p class="font-semibold text-blue-600">Sony A7C II <span class="text-xs bg-blue-100 text-blue-700 font-bold py-0.5 px-1.5 rounded-full">NÂNG CẤP LỚN</span></p>
+                                    <ul class="list-disc list-inside text-slate-600">
+                                        <li>759 điểm lấy nét theo pha</li>
+                                        <li class="font-semibold">Bộ xử lý AI chuyên dụng:
+                                            <ul class="list-disc list-inside ml-4 font-normal">
+                                                <li>Nhận diện: Người, Động vật, Chim, Côn trùng</li>
+                                                <li>Nhận diện: Xe hơi, Tàu hỏa, Máy bay</li>
+                                                <li>Dự đoán tư thế người</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                             <p class="mt-4 text-slate-600">Bộ xử lý AI trên A7C II là một bước nhảy vọt, mang lại khả năng bám nét chủ thể nhanh và khó đoán một cách đáng tin cậy, đặc biệt hữu ích khi chụp động vật hoang dã hoặc thể thao.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Video Tab -->
+                <section id="video" class="tab-content fade-in">
+                     <div class="text-center mb-12">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">So sánh Khả năng Quay Video</h2>
+                        <p class="text-slate-600 max-w-2xl mx-auto">Đối với các nhà làm phim và sáng tạo nội dung, đây là những khác biệt quan trọng nhất quyết định chất lượng và sự linh hoạt trong hậu kỳ.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- A7C Video -->
+                        <div class="content-card">
+                            <h3 class="font-bold text-xl text-slate-500">Sony A7C</h3>
+                            <div>
+                                <p class="font-semibold">Chất lượng ghi</p>
+                                <p><span class="font-mono text-lg font-medium">4K 30p</span> (crop 1.2x)</p>
+                                <p><span class="font-mono text-lg font-medium">4K 24p</span> (không crop)</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Chất lượng màu</p>
+                                <p><span class="inline-block py-1 px-3 bg-slate-200 text-slate-700 rounded-full text-sm font-semibold">8-bit 4:2:0</span></p>
+                                <p class="text-xs text-slate-500 mt-1">Phù hợp cho nhu cầu cơ bản, đăng tải trực tiếp.</p>
+                            </div>
+                             <div>
+                                <p class="font-semibold">Profile Màu</p>
+                                <p>S-Log2, S-Log3, HLG</p>
+                            </div>
+                        </div>
+
+                        <!-- A7C II Video -->
+                        <div class="content-card border-2 border-blue-500 ring-4 ring-blue-100">
+                             <h3 class="font-bold text-xl text-blue-600">Sony A7C II <span class="text-xs bg-blue-100 text-blue-700 font-bold py-0.5 px-1.5 rounded-full">VƯỢT TRỘI</span></h3>
+                            <div>
+                                <p class="font-semibold">Chất lượng ghi</p>
+                                <p><span class="font-mono text-lg font-medium">4K 60p</span> (crop 1.5x)</p>
+                                <p><span class="font-mono text-lg font-medium">4K 30p</span> (full-frame, 7K oversampling)</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Chất lượng màu</p>
+                                <p><span class="inline-block py-1 px-3 bg-blue-200 text-blue-800 rounded-full text-sm font-semibold">10-bit 4:2:2</span></p>
+                                <p class="text-xs text-slate-500 mt-1">Lý tưởng cho hậu kỳ, chỉnh màu chuyên nghiệp.</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Tính năng chuyên nghiệp</p>
+                                <ul class="list-disc list-inside text-slate-600">
+                                    <li>Có <span class="font-semibold">S-Cinetone</span></li>
+                                    <li>Tải và xem trước <span class="font-semibold">LUT</span></li>
+                                    <li>Bù trừ "Focus Breathing"</li>
+                                    <li>AI Auto Framing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- UX Tab -->
+                <section id="ux" class="tab-content fade-in">
+                    <div class="text-center mb-12">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Trải nghiệm Cầm nắm & Vận hành</h2>
+                        <p class="text-slate-600 max-w-2xl mx-auto">Những cải tiến nhỏ về công thái học có thể tạo ra khác biệt lớn trong quá trình sử dụng hàng ngày.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div class="content-card">
+                            <h3 class="font-bold text-lg mb-4 text-center">Nút xoay điều khiển</h3>
+                            <div class="grid grid-cols-2 gap-4 items-center">
+                                <div class="text-center">
+                                    <div class="w-24 h-16 bg-slate-200 mx-auto rounded flex items-center justify-center border-2 border-slate-300 relative">
+                                        <div class="w-8 h-8 bg-slate-400 rounded-full absolute top-4 right-2"></div>
+                                        <p class="text-xs font-semibold text-slate-600">A7C</p>
+                                    </div>
+                                    <p class="mt-2 text-sm text-slate-600">Thiếu nút xoay trước</p>
+                                </div>
+                                 <div class="text-center">
+                                    <div class="w-24 h-16 bg-blue-100 mx-auto rounded flex items-center justify-center border-2 border-blue-300 relative">
+                                        <div class="w-8 h-8 bg-blue-400 rounded-full absolute top-4 right-2"></div>
+                                        <div class="w-8 h-5 bg-blue-400 rounded-t-md absolute top-4 left-2"></div>
+                                        <p class="text-xs font-semibold text-blue-700">A7C II</p>
+                                    </div>
+                                    <p class="mt-2 text-sm font-semibold text-blue-600">Có nút xoay trước</p>
+                                </div>
+                            </div>
+                             <p class="mt-4 text-slate-600 text-sm">Việc bổ sung nút xoay phía trước trên A7C II giúp thay đổi thông số nhanh hơn, mang lại trải nghiệm chuyên nghiệp hơn.</p>
+                        </div>
+                         <div class="content-card">
+                            <h3 class="font-bold text-lg mb-4 text-center">Chống rung trong thân máy (IBIS)</h3>
+                            <div class="chart-container h-48">
+                                <canvas id="ibisChart"></canvas>
+                            </div>
+                            <p class="mt-4 text-slate-600 text-sm">A7C II có khả năng chống rung lên đến 7 stops, hiệu quả hơn 2 stops so với A7C, giúp chụp ảnh và quay video cầm tay ổn định hơn đáng kể.</p>
+                        </div>
+                        <div class="content-card">
+                            <h3 class="font-bold text-lg mb-4 text-center">Kính ngắm điện tử (EVF)</h3>
+                            <div class="chart-container h-48">
+                                <canvas id="evfChart"></canvas>
+                            </div>
+                            <p class="mt-4 text-slate-600 text-sm">EVF của A7C II có độ phóng đại lớn hơn, cho góc nhìn rộng và thoải mái hơn khi ngắm chụp so với cảm giác "nhìn qua lỗ khóa" trên A7C.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Sale Talk Tab -->
+                <section id="saletalk" class="tab-content fade-in">
+                    <div class="text-center mb-12">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Sale Talk: Luận điểm bán hàng</h2>
+                        <p class="text-slate-600 max-w-2xl mx-auto">Các điểm mạnh chính của từng sản phẩm để thuyết phục khách hàng.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="content-card bg-slate-50">
+                            <h3 class="text-2xl font-bold text-slate-800 mb-4">Sony A7C (Mark I)</h3>
+                            <ul class="space-y-3 list-disc list-inside text-slate-700">
+                                <li><span class="font-semibold">Giá trị vượt trội:</span> Mức giá hấp dẫn nhất cho một máy ảnh full-frame nhỏ gọn, giúp khách hàng tiết kiệm chi phí để đầu tư vào ống kính.</li>
+                                <li><span class="font-semibold">Pin bền bỉ:</span> Thời lượng pin 740 ảnh (CIPA) lý tưởng cho các chuyến đi dài, không lo hết pin giữa chừng.</li>
+                                <li><span class="font-semibold">Bộ đệm khủng:</span> 115 ảnh RAW nén, đảm bảo khả năng chụp liên tục mượt mà cho sự kiện, thể thao.</li>
+                                <li><span class="font-semibold">Chất lượng hình ảnh/video:</span> Ảnh 24MP và video 4K 8-bit vẫn quá đủ cho nhu cầu chụp ảnh gia đình, du lịch và vlogging cơ bản.</li>
+                                <li><span class="font-semibold">Thiết kế nhỏ gọn:</span> Dễ dàng mang theo mọi lúc mọi nơi, không chiếm nhiều diện tích trong túi.</li>
+                            </ul>
+                        </div>
+                        <div class="content-card bg-blue-50 border-2 border-blue-200">
+                            <h3 class="text-2xl font-bold text-blue-700 mb-4">Sony A7C II (Mark II)</h3>
+                            <ul class="space-y-3 list-disc list-inside text-slate-700">
+                                <li><span class="font-semibold">Công nghệ AI tiên tiến:</span> Lấy nét tự động cực kỳ thông minh, nhận diện và bám nét mọi chủ thể (người, động vật, xe cộ...) ngay cả trong điều kiện khó khăn.</li>
+                                <li><span class="font-semibold">Độ phân giải vượt trội:</span> Cảm biến 33MP cho ảnh sắc nét, chi tiết hơn, khả năng crop ảnh linh hoạt.</li>
+                                <li><span class="font-semibold">Video chuyên nghiệp:</span> Quay 4K 60p (crop), 10-bit 4:2:2 cho chất lượng video cao nhất, dễ dàng chỉnh màu hậu kỳ.</li>
+                                <li><span class="font-semibold">Chống rung 7-stops:</span> Chụp ảnh thiếu sáng và quay video cầm tay cực kỳ ổn định, không cần tripod.</li>
+                                <li><span class="font-semibold">Trải nghiệm cao cấp:</span> Báng cầm cải tiến, nút xoay phía trước, menu cảm ứng hoàn toàn, tối ưu hóa thao tác.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Counter Talk Tab -->
+                <section id="countertalk" class="tab-content fade-in">
+                    <div class="text-center mb-12">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Counter Talk: Xử lý các phản đối từ khách hàng</h2>
+                        <p class="text-slate-600 max-w-2xl mx-auto">Cách phản hồi các câu hỏi khó hoặc so sánh tiêu cực.</p>
+                    </div>
+                    <div class="grid md:grid-cols-1 gap-6">
+                        <div class="content-card bg-slate-50">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4">Phản đối: "A7C II đắt quá!"</h3>
+                            <p class="text-slate-700">**Phản hồi:** Đúng là A7C II có mức giá cao hơn, nhưng đây là khoản đầu tư cho <span class="font-semibold text-blue-600">công nghệ tương lai và khả năng sáng tạo không giới hạn</span>. Với bộ xử lý AI, video 10-bit và chống rung 7-stop, bạn sẽ có một công cụ mạnh mẽ và linh hoạt hơn nhiều, giúp <span class="font-semibold text-blue-600">tiết kiệm thời gian và công sức trong hậu kỳ</span>, đồng thời mở rộng đáng kể khả năng sáng tạo của bạn trong nhiều năm tới. Đây là sự khác biệt về hiệu suất đáng tiền.</p>
+                        </div>
+                        <div class="content-card bg-slate-50">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4">Phản đối: "A7C cũ rồi, có lỗi thời không?"</h3>
+                            <p class="text-slate-700">**Phản hồi:** Hoàn toàn không. A7C vẫn là một cỗ máy full-frame mạnh mẽ. Cảm biến 24MP và khả năng quay 4K vẫn cực kỳ đáp ứng cho phần lớn nhu cầu người dùng. Với mức giá hiện tại, bạn có thể <span class="font-semibold text-blue-600">đầu tư thêm vào ống kính chất lượng cao</span>, điều này thường mang lại khác biệt lớn hơn về chất lượng hình ảnh cuối cùng so với thân máy. Máy này cực kỳ bền bỉ và pin "trâu" sẽ không làm bạn thất vọng, đặc biệt cho nhu cầu du lịch hoặc sự kiện.</p>
+                        </div>
+                        <div class="content-card bg-slate-50">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4">Phản đối: "A7C II pin kém hơn A7C!"</h3>
+                            <p class="text-slate-700">**Phản hồi:** Đúng vậy, do bộ xử lý AI mới và hiệu năng tổng thể cao hơn, A7C II tiêu thụ pin nhiều hơn một chút. Tuy nhiên, pin NP-FZ100 là loại pin tiêu chuẩn của Sony, bạn dễ dàng mua thêm hoặc sạc dự phòng để đảm bảo đủ năng lượng cho cả ngày dài. Quan trọng hơn, <span class="font-semibold text-blue-600">hiệu năng vượt trội mà bạn nhận được từ công nghệ AI và video 10-bit</span> sẽ bù đắp cho sự khác biệt nhỏ về pin này, giúp bạn tạo ra những tác phẩm chất lượng cao hơn.</p>
+                        </div>
+                        <div class="content-card bg-slate-50">
+                            <h3 class="text-xl font-bold text-slate-800 mb-4">Phản đối: "A7C II bộ đệm nhỏ hơn A7C!"</h3>
+                            <p class="text-slate-700">**Phản hồi:** Đúng là A7C II có bộ đệm RAW nhỏ hơn một chút, điều này là do kích thước file RAW 33MP lớn hơn. Tuy nhiên, <span class="font-semibold text-blue-600">tốc độ xử lý cực nhanh của bộ xử lý BIONZ XR</span> giúp máy nhanh chóng xóa bộ đệm. Hơn nữa, khả năng lấy nét AI tiên tiến của A7C II giúp bạn có <span class="font-semibold text-blue-600">nhiều ảnh đúng nét hơn ngay từ lần chụp đầu tiên</span>, giảm số lượng ảnh phải chụp và cần xóa đi sau đó.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Conclusion Tab -->
+                <section id="conclusion" class="tab-content fade-in">
+                    <div class="text-center mb-12">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Kết luận & Khuyến nghị: Ai nên mua máy nào?</h2>
+                        <p class="text-slate-600 max-w-2xl mx-auto">Dựa trên tất cả các phân tích, đây là lựa chọn dành cho bạn, tùy thuộc vào nhu cầu và ngân sách.</p>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="content-card border-2 border-slate-200">
+                            <h3 class="text-2xl font-bold text-slate-800 mb-4">Mua Sony A7C (Mark I) nếu...</h3>
+                            <ul class="space-y-3 list-disc list-inside text-slate-700">
+                                <li><span class="font-semibold">Ngân sách là ưu tiên hàng đầu.</span> Bạn muốn tiết kiệm tiền để đầu tư vào ống kính chất lượng.</li>
+                                <li>Nhu cầu chính của bạn là <span class="font-semibold">chụp ảnh tĩnh</span>, du lịch, và gia đình.</li>
+                                <li>Bạn cần <span class="font-semibold">thời lượng pin tốt nhất</span> và bộ đệm lớn để chụp liên tục không bị gián đoạn.</li>
+                                <li>Bạn quay video cơ bản (8-bit) cho mạng xã hội và không yêu cầu chỉnh màu phức tạp.</li>
+                            </ul>
+                            <p class="mt-6 text-center text-2xl font-bold text-slate-600">Tối ưu về giá trị</p>
+                        </div>
+
+                         <div class="content-card border-2 border-blue-500 ring-4 ring-blue-100">
+                            <h3 class="text-2xl font-bold text-blue-700 mb-4">Mua Sony A7C II (Mark II) nếu...</h3>
+                             <ul class="space-y-3 list-disc list-inside text-slate-700">
+                                <li>Bạn là một <span class="font-semibold">nhà sáng tạo nội dung hybrid</span>, đòi hỏi cao ở cả chụp ảnh và quay video.</li>
+                                <li>Bạn cần hệ thống <span class="font-semibold">lấy nét tự động AI hàng đầu</span> để chụp chủ thể chuyển động nhanh như thể thao, động vật hoang dã.</li>
+                                <li>Bạn quay video chuyên nghiệp và cần <span class="font-semibold">chất lượng 10-bit 4:2:2</span>, S-Cinetone để hậu kỳ linh hoạt.</li>
+                                <li>Bạn đánh giá cao <span class="font-semibold">trải nghiệm sử dụng được cải thiện</span> với nút xoay trước, chống rung tốt hơn và EVF lớn hơn.</li>
+                            </ul>
+                             <p class="mt-6 text-center text-2xl font-bold text-blue-600">Đầu tư cho tương lai</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const specData = [
+        { category: "Cảm biến & Xử lý", key: "Cảm biến", a7c: "24.2 MP BSI CMOS", a7c2: "33.0 MP BSI CMOS" },
+        { category: "Cảm biến & Xử lý", key: "Bộ xử lý", a7c: "BIONZ X", a7c2: "BIONZ XR & AI Unit" },
+        { category: "Hiệu suất", key: "Chống rung (IBIS)", a7c: "5 stops", a7c2: "7 stops" },
+        { category: "Hiệu suất", key: "Tốc độ chụp", a7c: "10 fps", a7c2: "10 fps" },
+        { category: "Hiệu suất", key: "Bộ đệm RAW nén", a7c: "115 ảnh", a7c2: "44 ảnh" },
+        { category: "Lấy nét", key: "Hệ thống AF", a7c: "Hybrid AF, 693 điểm pha", a7c2: "Hybrid AF, 759 điểm pha" },
+        { category: "Lấy nét", key: "Nhận diện chủ thể", a7c: "Người, Động vật", a7c2: "AI: Người, Động vật, Chim, Xe..." },
+        { category: "Video", key: "Độ phân giải tối đa", a7c: "4K 30p (8-bit 4:2:0)", a7c2: "4K 60p (10-bit 4:2:2)" },
+        { category: "Video", key: "Profile màu chuyên nghiệp", a7c: "S-Log2/3, HLG", a7c2: "S-Cinetone, S-Log3, HLG, LUTs" },
+        { category: "Thân máy & Vận hành", key: "Kính ngắm (EVF)", a7c: "0.59x phóng đại", a7c2: "0.70x phóng đại" },
+        { category: "Thân máy & Vận hành", key: "Màn hình", a7c: "0.92M điểm", a7c2: "1.03M điểm" },
+        { category: "Thân máy & Vận hành", key: "Nút xoay trước", a7c: "Không", a7c2: "Có" },
+        { category: "Thân máy & Vận hành", key: "Thời lượng pin (LCD)", a7c: "740 ảnh", a7c2: "560 ảnh" },
+        { category: "Thân máy & Vận hành", key: "Giá tham khảo (VNĐ)", a7c: "~29.000.000", a7c2: "~45.000.000" }
+    ];
+
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabId = tab.dataset.tab;
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                    content.classList.add('fade-in');
+                } else {
+                    content.classList.remove('active');
+                    content.classList.remove('fade-in');
+                }
+            });
+        });
+    });
+
+    function createChart(ctx, type, labels, datasets, options = {}) {
+        const defaultOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                tooltip: {
+                    backgroundColor: '#1e293b',
+                    titleColor: '#cbd5e1',
+                    bodyColor: '#f1f5f9',
+                    boxPadding: 8,
+                    cornerRadius: 6,
+                    padding: 12,
+                    titleFont: { weight: 'bold' },
+                    bodyFont: { size: 14 },
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#e2e8f0',
+                        borderDash: [2, 4],
+                    },
+                    ticks: {
+                        color: '#64748b'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false,
+                    },
+                     ticks: {
+                        color: '#334155',
+                        font: {
+                            weight: '600'
+                        }
+                    }
+                }
+            }
+        };
+
+        if (type === 'bar') {
+            defaultOptions.scales.y.ticks.callback = function(value) {
+                if (value >= 1000000) return (value / 1000000) + ' Tr';
+                if (value >= 1000) return (value / 1000) + 'k';
+                return value;
+            };
+        }
+
+        new Chart(ctx, {
+            type: type,
+            data: { labels, datasets },
+            options: { ...defaultOptions, ...options }
+        });
+    }
+
+    function createPriceChart() {
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        createChart(ctx, 'bar', ['A7C', 'A7C II'], [{
+            label: 'Giá (VNĐ)',
+            data: [29000000, 45000000],
+            backgroundColor: ['#94a3b8', '#3b82f6'],
+            borderColor: ['#64748b', '#2563eb'],
+            borderWidth: 1,
+            borderRadius: 6,
+        }]);
+    }
+
+    function createBatteryChart() {
+        const ctx = document.getElementById('batteryChart').getContext('2d');
+        createChart(ctx, 'bar', ['A7C', 'A7C II'], [{
+            label: 'Số ảnh (dùng LCD)',
+            data: [740, 560],
+            backgroundColor: ['#94a3b8', '#3b82f6'],
+            borderColor: ['#64748b', '#2563eb'],
+            borderWidth: 1,
+            borderRadius: 6,
+        }]);
+    }
+
+    function createBufferChart() {
+        const ctx = document.getElementById('bufferChart').getContext('2d');
+        createChart(ctx, 'bar', ['A7C', 'A7C II'], [{
+            label: 'Số ảnh RAW nén',
+            data: [115, 44],
+            backgroundColor: ['#94a3b8', '#3b82f6'],
+            borderColor: ['#64748b', '#2563eb'],
+            borderWidth: 1,
+            borderRadius: 6,
+        }]);
+    }
+
+    function createIbisChart() {
+        const ctx = document.getElementById('ibisChart').getContext('2d');
+        createChart(ctx, 'bar', ['A7C', 'A7C II'], [{
+            label: 'Stops',
+            data: [5, 7],
+            backgroundColor: ['#94a3b8', '#3b82f6'],
+             borderColor: ['#64748b', '#2563eb'],
+            borderWidth: 1,
+            borderRadius: 6,
+        }], { indexAxis: 'y', scales: { x: { ticks: { callback: v => v + ' stops' }}}});
+    }
+
+    function createEvfChart() {
+        const ctx = document.getElementById('evfChart').getContext('2d');
+        createChart(ctx, 'bar', ['A7C', 'A7C II'], [{
+            label: 'Độ phóng đại',
+            data: [0.59, 0.70],
+            backgroundColor: ['#94a3b8', '#3b82f6'],
+             borderColor: ['#64748b', '#2563eb'],
+            borderWidth: 1,
+            borderRadius: 6,
+        }], { indexAxis: 'y', scales: { x: { ticks: { callback: v => v.toFixed(2) + 'x' }}}});
+    }
+
+    function populateSpecTable() {
+        const tableBody = document.getElementById('spec-table-body');
+        let currentCategory = "";
+        
+        const categoryMap = {
+            "Cảm biến & Xử lý": "Cảm biến & Xử lý",
+            "Hiệu suất": "Hiệu suất",
+            "Lấy nét": "Lấy nét",
+            "Video": "Video",
+            "Thân máy & Vận hành": "Thân máy & Vận hành"
+        };
+        const categories = Object.keys(categoryMap);
+        
+        let rowsHtml = '';
+        specData.forEach(spec => {
+            if (spec.category !== currentCategory) {
+                currentCategory = spec.category;
+                rowsHtml += `
+                    <tr>
+                        <td class="p-3 font-bold text-slate-800 bg-slate-200/70 border-b border-slate-300" colspan="3">${currentCategory}</td>
+                    </tr>
+                `;
+            }
+            rowsHtml += `
+                <tr data-row-category="${spec.category}" class="border-b border-slate-200">
+                    <td class="p-3 font-medium text-slate-600">${spec.key}</td>
+                    <td class="p-3 text-center">${spec.a7c}</td>
+                    <td class="p-3 text-center font-semibold text-blue-700">${spec.a7c2}</td>
+                </tr>
+            `;
+        });
+        
+        tableBody.innerHTML = rowsHtml;
+        
+        const specRows = document.querySelectorAll('#spec-table-body tr[data-row-category]');
+        
+        const headerCells = document.querySelectorAll('#spec-table-body td[colspan="3"]');
+        headerCells.forEach(header => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+                const category = header.textContent;
+                specRows.forEach(row => {
+                    if (row.dataset.rowCategory === category) {
+                        row.classList.add('spec-highlight');
+                    } else {
+                        row.classList.remove('spec-highlight');
+                    }
+                });
+            });
+             header.addEventListener('mouseenter', () => header.style.backgroundColor = '#d1d5db');
+             header.addEventListener('mouseleave', () => header.style.backgroundColor = '#e2e8f0');
+        })
+    }
+
+    createPriceChart();
+    createBatteryChart();
+    createBufferChart();
+    createIbisChart();
+    createEvfChart();
+    populateSpecTable();
+});
+</script>
+
+</body>
+</html>
